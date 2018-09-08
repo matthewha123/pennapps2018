@@ -20,7 +20,7 @@ gifs = data['data']
 
 
 
-def downloadGifs(search_query, gif_format_to_use):
+def downloadGifs(search_query, gif_format_to_use, stored_dict):
 	data = json.loads(urllib.request.urlopen("http://api.giphy.com/v1/gifs/search?q="+search_query+"&api_key="+giphyKey+"&limit=25").read())
 	gifs = data['data']
 
@@ -28,10 +28,17 @@ def downloadGifs(search_query, gif_format_to_use):
 		# print(gif['images'][gif_format_to_use])
 
 		gif_file_name = gif['slug']+".gif"
-		urllib.request.urlretrieve(gif['images'][gif_format_to_use]['url'], gif['slug']+".gif")
-		
-		print('Final: ', iterate_and_averagecolor(gif_file_name))
+		gif_url = gif['images'][gif_format_to_use]['url']
+		urllib.request.urlretrieve(gif_url, gif_file_name)
+		avg_rgb = iterate_and_averagecolor(gif_file_name)
+		print('Final: ', avg_rgb)
+		stored_dict[gif_file_name] = {"url":gif_url, "avg_rgb": avg_rgb}
+		print(stored_dict)
+		write_to_text(stored_dict)
 
+def write_to_text(dictionary):
+	with open('gif_data.txt', 'a') as gif_data:
+		json.dump(dictionary, gif_data, indent = 4)
 
 def iterate_and_averagecolor(gif_file_name):
 
@@ -76,4 +83,6 @@ def getAverageRGBN(image):
   return tuple(im.mean(axis=0))
 
 
-downloadGifs("green", "fixed_height")
+
+stored_dict = {}
+stored_dict = downloadGifs("green", "fixed_height", stored_dict)
