@@ -40,7 +40,6 @@ def process_gifs(search_query, gif_format_to_use, stored_dict):
 		avg_rgb = iterate_and_averagecolor(gif_file_name)
 		print('Final: ', avg_rgb)
 		stored_dict[gif_file_name] = {"url":gif_url, "avg_rgb": avg_rgb}
-		print(stored_dict)
 	return stored_dict
 
 
@@ -135,18 +134,43 @@ def get_nearest_gifs(rgb, stored_dict, num_gifs):
 	output_gifs = set()
 
 	for gif_name in stored_dict.keys():
+
+		distance = get_dist(rgb, stored_dict[gif_name]['avg_rgb'])
 		if len(output_gifs) < num_gifs:
-			num_gifs.add(gif_name)
+			output_gifs.add((gif_name, distance))
 		else:
-			pass
+
+			worst_gif = max(output_gifs, key = lambda tup: tup[1])
+
+			if worst_gif[1] > distance:
+				output_gifs.remove(worst_gif)
+				output_gifs.add((gif_name, distance))
 
 
+	print(output_gifs)
 
-
-
+def get_dist(target_rgb, ref_rgb):
+	'''
+	function that returns the "distance" between two rgb values
+	room for optimization: weight the different colors differently for the human eye preference
+	'''
+	diff_rgb = [target_rgb[i] - ref_rgb[i] for i in range(3)]
+	dist = 0
+	for num in diff_rgb:
+		dist += num**2
+	return dist
 
 stored_dict = {}
+
+
+green_words = ['green', 'forest', 'avocado', 'cactus', 'kiwi-fruit', 'ever-green-tree', 'st-patricks-day', 'hulk', 'oscar-the-grouch']
+red_words = ['red', 'raspberry-fruit', 'mars-planet', 'lobster', 'fire', 'canadian-flag', 'red-pirate', 'tomato-fruit', 'ladybug', 'mr-krabs']
+blue_words = ['blue', 'sky', 'ocean', 'deep-ocean', 'blue-man-group', 'beach', 'water-ocean', 'stitch', 'cookie-monster', 'frozen', 'squidward']
+yellow_words = ['yellow', 'minion', 'lemon', 'spongebob', 'orange', 'sun', 'gold', 'simpsons', 'cheese', 'corn']
+
 stored_dict = process_gifs("green", "fixed_height", stored_dict)
+
+
 write_to_text(stored_dict)
 
 
