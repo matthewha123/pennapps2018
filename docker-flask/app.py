@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 import json
 
+google_key = 'AIzaSyDeTTFBpWHQddFBElOInfLhDd5Yw7rCf8g'
+
 app = Flask(__name__)
 
 with open('gif_data.json') as f:
@@ -51,7 +53,7 @@ def get_dist(target_rgb, ref_rgb):
 @app.route('/')
 def hello_world():
     """Print 'Hello, world!' as the response body."""
-    return stored_dict_from_txt.keys()[0]
+    return "I am nichols your lifelong rival Mr.Cheeseman"
 
 @app.route('/api/nearest_gifs', methods=["GET"])
 def return_nearest_gifs():
