@@ -41,10 +41,11 @@ def process_gifs(search_query, gif_format_to_use, stored_dict):
 		print('Final: ', avg_rgb)
 		stored_dict[gif_file_name] = {"url":gif_url, "avg_rgb": avg_rgb}
 		print(stored_dict)
-		write_to_text(stored_dict)
+	return stored_dict
+
 
 def write_to_text(dictionary):
-	with open('gif_data.txt', 'a') as gif_data:
+	with open('gif_data.json', 'a') as gif_data:
 		json.dump(dictionary, gif_data, indent = 4)
 
 
@@ -116,7 +117,41 @@ def resize_and_save(gif_file_name, size):
 
 
 
+def get_nearest_gifs(rgb, stored_dict, num_gifs):
+	'''
+	rgb: tuple containing the specified rgb value to match gifs to
+	'''
+
+	'''
+	possible future improvements: 
+		- eliminate already chosen images or eliminate them when chosen multiple times
+		- Start choosing images at a more neutral point (50% brightness)
+		- advice of: http://blog.wolfram.com/2008/05/02/making-photo-mosaics/
+	'''
+	print(stored_dict.keys())
+
+
+
+	output_gifs = set()
+
+	for gif_name in stored_dict.keys():
+		if len(output_gifs) < num_gifs:
+			num_gifs.add(gif_name)
+		else:
+			pass
+
+
+
+
 
 
 stored_dict = {}
 stored_dict = process_gifs("green", "fixed_height", stored_dict)
+write_to_text(stored_dict)
+
+
+
+with open('gif_data.json') as f:
+	stored_dict_from_txt = json.load(f)
+
+get_nearest_gifs((125,125,125), stored_dict_from_txt, 10)
