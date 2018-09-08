@@ -30,7 +30,7 @@ def downloadGifs(search_query, gif_format_to_use):
 		gif_file_name = gif['slug']+".gif"
 		urllib.request.urlretrieve(gif['images'][gif_format_to_use]['url'], gif['slug']+".gif")
 		
-		iterate_and_averagecolor(gif_file_name)
+		print('Final: ', iterate_and_averagecolor(gif_file_name))
 
 
 def iterate_and_averagecolor(gif_file_name):
@@ -40,37 +40,40 @@ def iterate_and_averagecolor(gif_file_name):
 	gif_img = Image.open(gif_file_name)
 	
 
-	n_frames = gif_img.n_frames
+	n_frames = gif_img.n_frames - 1
 	i = 0
 
 	fourth = n_frames // 4
 
 	intervals = [fourth * i for i in range(1,5)]
+	print(n_frames)
 	print(intervals)
+
+
+
+	final_average = [0,0,0]
 	while(i<gif_img.n_frames):
-		i+= 1
 		gif_img.seek(i)
 		if(i in intervals):
 			to_rgb = gif_img.convert(mode="RGB")
-			average_rgb = [mean(to_rgb.getdata(band)) for band in range(3)]
-			print(gif_file_name, ":", average_rgb)
-			# gif_img.show()
+			average_rgb = getAverageRGBN(to_rgb)
+			final_average = [final_average[i] + average_rgb[i] for i in range(3)]
+		i+= 1
+	return [final_average[i]/len(intervals) for i in range(3)]
 
-def get_average_color(image):
+
+def getAverageRGBN(image):
   """
   Given PIL Image, return average value of color as (r, g, b)
   """
-
-  # no. of pixels in image
-  npixels = image.size[0]*image.size[1]
-  # get colors as [(cnt1, (r1, g1, b1)), ...]
-  cols = image.getcolors(npixels)
-  # get [(c1*r1, c1*g1, c1*g2),...]
-  sumRGB = [(x[0]*x[1][0], x[0]*x[1][1], x[0]*x[1][2]) for x in cols] 
-  # calculate (sum(ci*ri)/np, sum(ci*gi)/np, sum(ci*bi)/np)
-  # the zip gives us [(c1*r1, c2*r2, ..), (c1*g1, c1*g2,...)...]
-  avg = tuple([sum(x)/npixels for x in zip(*sumRGB)])
-  return avg
+  # get image as numpy array
+  im = np.array(image)
+  # get shape
+  w,h,d = im.shape
+  # change shape
+  im.shape = (w*h, d)
+  # get average
+  return tuple(im.mean(axis=0))
 
 
 downloadGifs("green", "fixed_height")
