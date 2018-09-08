@@ -5,7 +5,8 @@ giphyKey = "TSIIIOcIx5kqFH1hQ4LIaLo4zvId3SBk"
 import urllib,json
 import urllib.request
 
-from PIL import Image
+from PIL import Image, ImageSequence
+
 from statistics import mean
 
 import numpy as np
@@ -20,7 +21,10 @@ gifs = data['data']
 
 
 
-def downloadGifs(search_query, gif_format_to_use, stored_dict):
+def process_gifs(search_query, gif_format_to_use, stored_dict):
+	'''
+
+	'''
 	data = json.loads(urllib.request.urlopen("http://api.giphy.com/v1/gifs/search?q="+search_query+"&api_key="+giphyKey+"&limit=25").read())
 	gifs = data['data']
 
@@ -30,6 +34,9 @@ def downloadGifs(search_query, gif_format_to_use, stored_dict):
 		gif_file_name = gif['slug']+".gif"
 		gif_url = gif['images'][gif_format_to_use]['url']
 		urllib.request.urlretrieve(gif_url, gif_file_name)
+
+		resize_and_save(gif_file_name, (50,50))
+
 		avg_rgb = iterate_and_averagecolor(gif_file_name)
 		print('Final: ', avg_rgb)
 		stored_dict[gif_file_name] = {"url":gif_url, "avg_rgb": avg_rgb}
@@ -39,6 +46,7 @@ def downloadGifs(search_query, gif_format_to_use, stored_dict):
 def write_to_text(dictionary):
 	with open('gif_data.txt', 'a') as gif_data:
 		json.dump(dictionary, gif_data, indent = 4)
+
 
 def iterate_and_averagecolor(gif_file_name):
 
@@ -84,5 +92,31 @@ def getAverageRGBN(image):
 
 
 
+def resize_and_save(gif_file_name, size):
+	'''
+	gif_file_name: string, specifying the filename of the gif you want to resize
+	size: tuple of 2 nonnegative integers specifying the desired output size
+	'''
+
+	im = Image.open(gif_file_name)
+
+	frames = ImageSequence.Iterator(im)
+	def thumbnails(frames):
+		for frame in frames:
+			thumbnail = frame.copy()
+			thumbnail.thumbnail(size, Image.ANTIALIAS)
+			yield thumbnail
+
+	frames = thumbnails(frames)
+
+	output_image = next(frames)
+	output_image.info = im.info
+
+	output_image.save(gif_file_name, save_all=True, append_images=list(frames))
+
+
+
+
+
 stored_dict = {}
-stored_dict = downloadGifs("green", "fixed_height", stored_dict)
+stored_dict = process_gifs("green", "fixed_height", stored_dict)
