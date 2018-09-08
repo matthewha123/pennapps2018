@@ -20,11 +20,15 @@ gifs = data['data']
 
 
 
-
+num_gifs = 0
 def process_gifs(search_query, gif_format_to_use, stored_dict):
 	'''
 
 	'''
+
+	global num_gifs
+
+
 	data = json.loads(urllib.request.urlopen("http://api.giphy.com/v1/gifs/search?q="+search_query+"&api_key="+giphyKey+"&limit=25").read())
 	gifs = data['data']
 
@@ -38,8 +42,10 @@ def process_gifs(search_query, gif_format_to_use, stored_dict):
 		resize_and_save(gif_file_name, (50,50))
 
 		avg_rgb = iterate_and_averagecolor(gif_file_name)
-		print('Final: ', avg_rgb)
+		num_gifs+= 1
+		print('Final: ', avg_rgb, gif_file_name, num_gifs)
 		stored_dict[gif_file_name] = {"url":gif_url, "avg_rgb": avg_rgb}
+
 	return stored_dict
 
 
@@ -55,26 +61,20 @@ def iterate_and_averagecolor(gif_file_name):
 	gif_img = Image.open(gif_file_name)
 	
 
-	n_frames = gif_img.n_frames - 1
-	i = 0
+	curr_frame = 0
 
-	fourth = n_frames // 4
-
-	intervals = [fourth * i for i in range(1,5)]
-	print(n_frames)
-	print(intervals)
-
-
+	num_frames_to_check = 10
 
 	final_average = [0,0,0]
-	while(i<gif_img.n_frames):
-		gif_img.seek(i)
-		if(i in intervals):
-			to_rgb = gif_img.convert(mode="RGB")
-			average_rgb = getAverageRGBN(to_rgb)
-			final_average = [final_average[i] + average_rgb[i] for i in range(3)]
-		i+= 1
-	return [final_average[i]/len(intervals) for i in range(3)]
+	while(curr_frame<num_frames_to_check):
+		if curr_frame > gif_img.n_frames-1:
+			break
+		gif_img.seek(curr_frame)
+		to_rgb = gif_img.convert(mode="RGB")
+		average_rgb = getAverageRGBN(to_rgb)
+		final_average = [final_average[i] + average_rgb[i] for i in range(3)]
+		curr_frame+= 1
+	return [int(final_average[i]/min(curr_frame, num_frames_to_check)) for i in range(3)]
 
 
 def getAverageRGBN(image):
@@ -163,19 +163,29 @@ def get_dist(target_rgb, ref_rgb):
 stored_dict = {}
 
 
-green_words = ['green', 'forest', 'avocado', 'cactus', 'kiwi-fruit', 'ever-green-tree', 'st-patricks-day', 'hulk', 'oscar-the-grouch']
-red_words = ['red', 'raspberry-fruit', 'mars-planet', 'lobster', 'fire', 'canadian-flag', 'red-pirate', 'tomato-fruit', 'ladybug', 'mr-krabs']
-blue_words = ['blue', 'sky', 'ocean', 'deep-ocean', 'blue-man-group', 'beach', 'water-ocean', 'stitch', 'cookie-monster', 'frozen', 'squidward']
-yellow_words = ['yellow', 'minion', 'lemon', 'spongebob', 'orange', 'sun', 'gold', 'simpsons', 'cheese', 'corn']
+search_words_dict = {
+	'green': ['green', 'forest', 'avocado', 'cactus', 'kiwi-fruit', 'ever-green-tree', 'st-patricks-day', 'hulk', 'oscar-the-grouch'],
+	'red': ['red', 'raspberry-fruit', 'mars-planet', 'lobster', 'fire', 'canadian-flag', 'red-pirate', 'tomato-fruit', 'ladybug', 'mr-krabs'],
+	'blue': ['blue', 'sky', 'ocean', 'deep-ocean', 'blue-man-group', 'beach', 'water-ocean', 'stitch', 'cookie-monster', 'frozen', 'squidward'],
+	'yellow': ['yellow', 'minion', 'lemon', 'spongebob', 'orange', 'sun', 'gold', 'simpsons', 'cheese', 'corn'],
+	'brown': ['brown', 'dirt', 'desert', 'shit', 'brown-eyes', 'chocolate', 'chocolate-cake', 'coffee', 'monkey'],
+	'black': ['outer-space', 'night', 'darkness', 'darth-vader', 'solar-system', 'black-oil', 'black-and-white', 'black-and-white-film'],
+	'whhite': ['white-canvas', 'samoyed', 'wedding-dress', 'snow', 'white-cloud',  'white-paint', 'styrofoam', 'vanilla-ice-cream'],
+	'purple': ['purple', 'eggplant', 'purple-back']
+}
 
-stored_dict = process_gifs("green", "fixed_height", stored_dict)
+
+
+for color in search_words_dict.keys():
+	for word in search_words_dict[color]:
+		stored_dict = process_gifs(word, "fixed_height", stored_dict)
 
 
 write_to_text(stored_dict)
 
 
 
-with open('gif_data.json') as f:
-	stored_dict_from_txt = json.load(f)
+# with open('gif_data.json') as f:
+# 	stored_dict_from_txt = json.load(f)
 
-get_nearest_gifs((125,125,125), stored_dict_from_txt, 10)
+# get_nearest_gifs((125,125,125), stored_dict_from_txt, 10)
