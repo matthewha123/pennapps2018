@@ -59,10 +59,9 @@ def hello_world():
 def return_nearest_gifs():
 
 	target_rgb = [int(num_string) for num_string in request.args.get('rgb', '').split(',')]
-	num_gifs_to_return = int(request.args.get('numgifs', ''))
 	print('Target RGB: ', target_rgb)
 	
-	names_of_nearest_gifs = get_nearest_gifs(target_rgb, stored_dict_from_txt, num_gifs_to_return)
+	names_of_nearest_gifs = get_nearest_gifs(target_rgb, stored_dict_from_txt, 10)
 	# print('Nearest gifs: ', names_of_nearest_gifs)
 
 	return jsonify(list(names_of_nearest_gifs))
