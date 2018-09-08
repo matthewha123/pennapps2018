@@ -111,8 +111,8 @@ def resize_and_save(gif_file_name, size):
 
 	output_image = next(frames)
 	output_image.info = im.info
-
-	output_image.save(gif_file_name, save_all=True, append_images=list(frames))
+	prfx = str(size[0])+'x'+str(size[1])
+	output_image.save(prfx+gif_file_name, save_all=True, append_images=list(frames))
 
 
 
@@ -170,17 +170,29 @@ search_words_dict = {
 	'yellow': ['yellow', 'minion', 'lemon', 'spongebob', 'orange', 'sun', 'gold', 'simpsons', 'cheese', 'corn'],
 	'brown': ['brown', 'dirt', 'desert', 'shit', 'brown-eyes', 'chocolate', 'chocolate-cake', 'coffee', 'monkey'],
 	'black': ['outer-space', 'night', 'darkness', 'darth-vader', 'solar-system', 'black-oil', 'black-and-white', 'black-and-white-film'],
-	'whhite': ['white-canvas', 'samoyed', 'wedding-dress', 'snow', 'white-cloud',  'white-paint', 'styrofoam', 'vanilla-ice-cream'],
+	'white': ['white-canvas', 'samoyed', 'wedding-dress', 'snow', 'white-cloud',  'white-paint', 'styrofoam', 'vanilla-ice-cream'],
 	'purple': ['purple', 'eggplant', 'purple-back']
 }
 
 
-
+stop_fetching = False
 for color in search_words_dict.keys():
 	for word in search_words_dict[color]:
-		stored_dict = process_gifs(word, "fixed_height", stored_dict)
+		try :
+			stored_dict = process_gifs(word, "fixed_height", stored_dict)
+		except :
+			stop_fetching = True
+			print('broke')
+			break
+	if(stop_fetching):
+		break
 
+# for word in search_words_dict['black']:
+# 	print('WORD IS', word)
+# 	stored_dict = process_gifs(word, "fixed_height", stored_dict)
 
+# stored_dict = process_gifs('darkness', "fixed_height", stored_dict)
+print("DONEDONEDONEDONE!!!!")
 write_to_text(stored_dict)
 
 
