@@ -458,12 +458,17 @@ def create(point_list, dimensions, axis=0, sel_axis=None, parent=None):
 
     # Sort point list and choose median as pivot element
     point_list.sort(key=lambda point: point[axis])
-    median = int(len(point_list) / 2)
 
-    loc = point_list[int(median)]
+    rough_median = len(point_list)/2
+
+    if rough_median < 1:
+        median = 0
+    else:
+        median = int(math.ceil(rough_median))
+    loc = point_list[median]
     root = KDNode(loc, parent, left=None, right=None,
                   axis=axis, sel_axis=sel_axis)
-    root.left = create(point_list[:int(median)],
+    root.left = create(point_list[:median],
                        dimensions, sel_axis(axis), parent=root)
     root.right = create(point_list[median + 1:],
                         dimensions, sel_axis(axis), parent=root)
