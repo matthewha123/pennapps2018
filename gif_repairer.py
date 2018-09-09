@@ -11,10 +11,9 @@ def repair(path):
 
 	if is_partial(im):
 		print('REPAIRING:!', path)
-		frames = ImageSequence.Iterator(im)
 		last_frame = im.convert('RGBA')
-		frames = []
 		p = im.getpalette()
+		frames = []
 		try:
 			while True:
 				if not im.getpalette():
@@ -41,7 +40,7 @@ def repair(path):
 		except EOFError:
 			pass
 
-	frames[0].save(path, save_all=True, append_images=list(frames[1:]), loop=0)
+		frames[0].save(path, save_all=True, append_images=list(frames[1:]), loop=0)
 
 
 def is_partial(im):
@@ -52,6 +51,7 @@ def is_partial(im):
 				# print('tile',tile)
 				# print('size',im.size)
 				update_region = tile[1]
+				print(update_region)
 				if update_region != (0,0)+(im.size):
 					print("upadate region", update_region)
 					return True
