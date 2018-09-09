@@ -1,18 +1,18 @@
-import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
-import org.apache.commons.io.FileUtils;
-
 public class Gif {
 
+	private static HashMap<String, Gif> pathMap = new HashMap<>();
+	
 	private ArrayList<BufferedImage> frames;
 	private int k;
 
@@ -42,8 +42,7 @@ public class Gif {
 
 	public BufferedImage getNextFrame() {
 		BufferedImage frame = frames.get(k);
-		k++;
-		k %= frames.size();
+		incGif();
 		return frame;
 	}
 
@@ -52,10 +51,20 @@ public class Gif {
 	public void restartGif() {
 		k = 0;
 	}
+	
+	// increment the img index
+	public void incGif() {
+		k++;
+		k %= frames.size();
+	}
 
-	public void drawNextFrame(Graphics g, int x, int y, int w, int h) {
+	// note: will not draw if off frame
+	public void drawFrame(Graphics2D g, int x, int y, int w, int h) {
+		if (x + w < 0 || y + h < 0 || x > GifGrid.FRAME_SIZE || y > GifGrid.FRAME_SIZE) {
+			return;
+		}
+		
 		g.drawImage(frames.get(k), x, y, w, h, null);
-		k++; k %= frames.size();
 	}
 
 	// create a gif with an array of img paths
@@ -78,29 +87,48 @@ public class Gif {
 		return new Gif(imgs);
 	}
 
-	public static Gif createGif(URL url) {
+	public static Gif createGif(File input) {
 		ArrayList<BufferedImage> frames = new ArrayList<>();
+		
+		ArrayList<String> paths = new ArrayList<>();
+		paths.add("src/ball_1.png");
+		paths.add("src/ball_2.png");
+		paths.add("src/ball_3.png");
+		paths.add("src/ball_4.png");
 
+		int n = 0;
 		try {
 			ImageReader reader = ImageIO.getImageReadersByFormatName("gif").next();
-			File input = new File("src/nerd.gif");
-
-			//FileUtils.copyURLToFile(url, input);
-
-			///ImageInputStream stream = ImageIO.createImageInputStream(input);
 			ImageInputStream stream = ImageIO.createImageInputStream(input);
-			reader.setInput(stream);
+			reader.setInput(stream, false);
 
-			int n = reader.getNumImages(true);
-			for (int i = 0; i < n; i++) {
+			n = reader.getNumImages(true);
+			for (int i = 0; i < Math.min(n, 10); i++) {
 				frames.add(reader.read(i));
 			}
 		} catch (IOException ex) {
-			System.out.println("IOException caught");
+			//System.out.println("IOException caught");
 			System.exit(0);
+		} catch (ArrayIndexOutOfBoundsException e) {
+			//System.out.println("OutOfBounds: "+ input.getPath());
 		}
 
+		if (frames.size() == 0) {
+			return null;
+		}
+		
 		return new Gif(frames);
 	}
 	
+	public static boolean pathMapContains(String path) {
+		return pathMap.containsKey(path);
+	}
+	
+	public static Gif getGifFromMap(String path) {
+		return pathMap.get(path);
+	}
+	
+	public static void storeGifInMap(String path, Gif g) {
+		pathMap.put(path, g);
+	}
 }
