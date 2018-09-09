@@ -1,12 +1,19 @@
 from flask import Flask, request, jsonify
 import json
 
+import kdtree
+
 google_key = 'AIzaSyDeTTFBpWHQddFBElOInfLhDd5Yw7rCf8g'
 
 app = Flask(__name__)
 
 with open('gif_data.json') as f:
 	stored_dict_from_txt = json.load(f)
+
+points = [tuple(stored_dict_from_txt[name]['avg_rgb']) +(name,) for name in stored_dict_from_txt.keys()]
+print(points)
+
+root = kdtree.create(points, dimensions=3)
 
 def get_nearest_gifs(rgb, stored_dict, num_gifs):
 	'''
@@ -19,6 +26,8 @@ def get_nearest_gifs(rgb, stored_dict, num_gifs):
 		- Start choosing images at a more neutral point (50% brightness)
 		- advice of: http://blog.wolfram.com/2008/05/02/making-photo-mosaics/
 	'''
+
+	print(root.search_knn(point=rgb, k = num_gifs, dist=None))
 
 	output_gifs = set()
 
@@ -66,6 +75,10 @@ def return_nearest_gifs():
 	# print('Nearest gifs: ', names_of_nearest_gifs)
 
 	return jsonify(list(names_of_nearest_gifs))
+
+
+
+
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=80, debug=True)
